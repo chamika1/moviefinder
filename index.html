@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Dorks Movie Finder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-size: 2.8em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .search-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .main-search {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            min-width: 300px;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #00ff88, #00cc6a);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .dork-templates {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .dork-templates h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .dork-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .dork-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .dork-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .api-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .api-input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .api-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .results-section {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            min-height: 400px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 255, 136, 0.3);
+            border-left: 4px solid #00ff88;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 4px solid #00ff88;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+
+        .result-title {
+            color: #00ff88;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .result-url {
+            color: #4fc3f7;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+
+        .result-snippet {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .visit-btn {
+            background: #4caf50;
+            color: white;
+        }
+
+        .copy-btn {
+            background: #2196f3;
+            color: white;
+        }
+
+        .analyze-btn {
+            background: #ff9800;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .query-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .query-display h4 {
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+
+        .query-text {
+            font-family: 'Courier New', monospace;
+            color: #4fc3f7;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .main-search {
+                flex-direction: column;
+            }
+            
+            input[type="text"] {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Google Dorks Movie Finder</h1>
+        <p class="subtitle">Advanced Google Search for Movie Download Links</p>
+        
+        <div class="warning">
+            ⚠️ <strong>Disclaimer:</strong> This tool is for educational purposes. Please respect copyright laws and use legitimate streaming services.
+        </div>
+        
+        <div class="api-section">
+            <h3 style="color: #ff6b6b; margin-bottom: 10px;">🔑 Google Custom Search API Setup</h3>
+            <p style="font-size: 14px; margin-bottom: 10px;">Get your API key from <a href="https://developers.google.com/custom-search/v1/introduction" target="_blank" style="color: #4fc3f7;">Google Developers Console</a></p>
+            <input type="text" class="api-input" id="apiKey" placeholder="Enter your Google Custom Search API Key" value="AIzaSyBaqxgDOBCyk17I4w1J4PHAOzR3Q6lfExo">
+            <input type="text" class="api-input" id="searchEngineId" placeholder="Enter your Custom Search Engine ID (starts with cx:...)" value="d221a6e626f2345fc">
+            <div style="margin-top: 15px; padding: 10px; background: rgba(0, 255, 136, 0.1); border-radius: 8px; font-size: 14px;">
+                <strong>📋 Quick Setup:</strong><br>
+                1. Go to <a href="https://programmablesearchengine.google.com/" target="_blank" style="color: #4fc3f7;">Google Programmable Search</a><br>
+                2. Click "Add" → Leave sites empty OR add specific sites<br>
+                3. <strong>✅ Enable "Search the entire web"</strong><br>
+                4. Copy your Search Engine ID (cx:...)<br>
+                <details style="margin-top: 10px;">
+                    <summary style="color: #00ff88; cursor: pointer;">🎬 Popular Movie Sites to Add</summary>
+                    <div style="margin-top: 10px; font-family: monospace; font-size: 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+                        drive.google.com/*<br>
+                        mega.nz/*<br>
+                        mediafire.com/*<br>
+                        4shared.com/*<br>
+                        zippyshare.com/*<br>
+                        *.index-of.es/*
+                    </div>
+                </details>
+            </div>
+        </div>
+        
+        <div class="search-section">
+            <div class="main-search">
+                <input type="text" id="movieName" placeholder="Enter movie name (e.g., Avengers Endgame)" />
+                <button class="search-btn" onclick="searchMovieLinks()">🚀 Search</button>
+            </div>
+            
+            <div class="dork-templates">
+                <h3>📋 Pre-built Google Dorks Templates</h3>
+                <div class="dork-buttons">
+                    <button class="dork-btn" onclick="applyDork('mp4')">MP4 Files</button>
+                    <button class="dork-btn" onclick="applyDork('mkv')">MKV Files</button>
+                    <button class="dork-btn" onclick="applyDork('index')">Directory Listing</button>
+                    <button class="dork-btn" onclick="applyDork('download')">Download Links</button>
+                    <button class="dork-btn" onclick="applyDork('stream')">Streaming</button>
+                    <button class="dork-btn" onclick="applyDork('torrent')">Torrents</button>
+                    <button class="dork-btn" onclick="applyDork('gdrive')">Google Drive</button>
+                    <button class="dork-btn" onclick="applyDork('mega')">MEGA Links</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="query-display" style="display: none;" id="queryDisplay">
+                <h4>🔍 Current Search Query:</h4>
+                <div class="query-text" id="queryText"></div>
+            </div>
+            
+            <div style="text-align: center; padding: 50px;">
+                <h3 style="color: #00ff88;">🎬 Ready to Search!</h3>
+                <p style="margin-top: 15px; color: rgba(255, 255, 255, 0.7);">
+                    Enter a movie name and click search to find download links using Google dorks
+                </p>
+                <div style="margin-top: 20px; font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                    <p><strong>Popular Dorks:</strong></p>
+                    <p>• intitle:"index of" movie name mp4</p>
+                    <p>• "movie name" filetype:mp4</p>
+                    <p>• site:drive.google.com "movie name"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDorkType = 'mp4';
+        
+        const dorkTemplates = {
+            mp4: 'intitle:"index of" "{MOVIE}" mp4',
+            mkv: 'intitle:"index of" "{MOVIE}" mkv',
+            index: 'intitle:"index of" "{MOVIE}" -html -htm -php',
+            download: '"{MOVIE}" download link mp4 -youtube',
+            stream: '"{MOVIE}" watch online stream',
+            torrent: '"{MOVIE}" torrent magnet',
+            gdrive: 'site:drive.google.com "{MOVIE}"',
+            mega: 'site:mega.nz "{MOVIE}"'
+        };
+        
+        function applyDork(type) {
+            currentDorkType = type;
+            const movieName = document.getElementById('movieName').value;
+            if (movieName) {
+                updateQueryDisplay(movieName, type);
+            }
+            
+            // Highlight selected dork
+            document.querySelectorAll('.dork-btn').forEach(btn => {
+                btn.style.background = 'rgba(255, 255, 255, 0.1)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            });
+            event.target.style.background = 'rgba(0, 255, 136, 0.2)';
+            event.target.style.borderColor = '#00ff88';
+        }
+        
+        function updateQueryDisplay(movieName, dorkType) {
+            const query = dorkTemplates[dorkType].replace('{MOVIE}', movieName);
+            document.getElementById('queryDisplay').style.display = 'block';
+            document.getElementById('queryText').textContent = query;
+        }
+        
+        function searchMovieLinks() {
+            const movieName = document.getElementById('movieName').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const searchEngineId = document.getElementById('searchEngineId').value.trim();
+            
+            if (!movieName) {
+                alert('Please enter a movie name!');
+                return;
+            }
+            
+            if (!apiKey || !searchEngineId) {
+                // Demo mode without API
+                searchDemo(movieName);
+                return;
+            }
+            
+            updateQueryDisplay(movieName, currentDorkType);
+            const query = dorkTemplates[currentDorkType].replace('{MOVIE}', movieName);
+            
+            showLoading();
+            
+            // Real Google Custom Search API call
+            const apiUrl = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${encodeURIComponent(query)}`;
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data.items || [], movieName);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('API request failed. Running in demo mode...');
+                    setTimeout(() => searchDemo(movieName), 1000);
+                });
+        }
+        
+        function searchDemo(movieName) {
+            updateQueryDisplay(movieName, currentDorkType);
+            showLoading();
+            
+            // Simulate demo results
+            setTimeout(() => {
+                const demoResults = [
+                    {
+                        title: `${movieName} (2023) - 1080p MP4 Download`,
+                        link: `https://example-server.com/movies/${movieName.replace(/\s+/g, '-').toLowerCase()}.mp4`,
+                        snippet: `Direct download link for ${movieName} in high quality MP4 format. File size: 2.5GB. Click to download immediately.`
+                    },
+                    {
+                        title: `Index of /movies/ - ${movieName}`,
+                        link: `https://file-server.net/movies/index.html`,
+                        snippet: `Directory listing containing ${movieName} and other movies. Multiple formats available including MP4, MKV, AVI.`
+                    },
+                    {
+                        title: `${movieName} Google Drive - Shared Folder`,
+                        link: `https://drive.google.com/drive/folders/demo123`,
+                        snippet: `Shared Google Drive folder containing ${movieName} in various qualities. HD and 4K versions available.`
+                    }
+                ];
+                displayResults(demoResults, movieName);
+            }, 2000);
+        }
+        
+        function showLoading() {
+            document.getElementById('resultsSection').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>🔍 Searching for movie links...</p>
+                    <p style="font-size: 14px; margin-top: 10px; color: rgba(255, 255, 255, 0.6);">
+                        Using Google dorks to find download sources
+                    </p>
+                </div>
+            `;
+        }
+        
+        function showError(message) {
+            document.getElementById('resultsSection').innerHTML = `
+                <div style="text-align: center; padding: 50px;">
+                    <h3 style="color: #ff6b6b;">❌ Error</h3>
+                    <p style="margin-top: 15px; color: rgba(255, 255, 255, 0.7);">${message}</p>
+                </div>
+            `;
+        }
+        
+        function displayResults(results, movieName) {
+            const resultsSection = document.getElementById('resultsSection');
+            
+            if (!results || results.length === 0) {
+                resultsSection.innerHTML = `
+                    <div style="text-align: center; padding: 50px;">
+                        <h3 style="color: #ff6b6b;">😔 No Results</h3>
+                        <p style="margin-top: 15px; color: rgba(255, 255, 255, 0.7);">
+                            No download links found for "${movieName}". Try different dork templates or movie name.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const currentQueryString = dorkTemplates[currentDorkType].replace('{MOVIE}', movieName);
+
+            let html = `
+                <div class="query-display" id="queryDisplay">
+                    <h4>🔍 Search Results for: "${movieName}"</h4>
+                    <div class="query-text" id="queryText">${currentQueryString}</div>
+                </div>
+                <h3 style="color: #00ff88; margin-bottom: 20px;">🎯 Found ${results.length} result(s)</h3>
+            `;
+            
+            results.forEach((result, index) => {
+                html += `
+                    <div class="result-item">
+                        <div class="result-title">${result.title}</div>
+                        <div class="result-url">${result.link}</div>
+                        <div class="result-snippet">${result.snippet}</div>
+                        <div class="result-actions">
+                            <a href="${result.link}" target="_blank" class="action-btn visit-btn">🌐 Visit</a>
+                            <button class="action-btn copy-btn" onclick="copyLink('${result.link}')">📋 Copy Link</button>
+                            <button class="action-btn analyze-btn" onclick="analyzeLink('${result.link}')">🔍 Analyze</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsSection.innerHTML = html;
+        }
+        
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this link:', link);
+            });
+        }
+        
+        function analyzeLink(link) {
+            alert(`🔍 Link Analysis:\n\n• URL: ${link}\n• Domain: ${new URL(link).hostname}\n• Appears to be: ${getLinkType(link)}\n\n⚠️ Always verify links before downloading!`);
+        }
+        
+        function getLinkType(link) {
+            const url = link.toLowerCase();
+            if (url.includes('drive.google.com')) return 'Google Drive';
+            if (url.includes('mega.nz')) return 'MEGA';
+            if (url.includes('.mp4')) return 'Direct MP4 File';
+            if (url.includes('.mkv')) return 'Direct MKV File';
+            if (url.includes('index')) return 'Directory Listing';
+            return 'Unknown';
+        }
+        
+        // Enter key support
+        document.getElementById('movieName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchMovieLinks();
+            }
+        });
+        
+        // Initialize with default dork
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.dork-btn').click();
+        });
+    </script>
+</body>
+</html>
